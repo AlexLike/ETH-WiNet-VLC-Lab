@@ -4,7 +4,8 @@ Idea for the chat application:
 
 	-main chat app has:
 		- arduino listener thread
-			listens to the port and sends read messages to queue in the main app.
+			listens to the port and sends read messages to queue (see example code here: https://docs.python.org/3/library/queue.html)
+			in the main app.
 		
 		- console listener thread
 			upon reading a input string 
