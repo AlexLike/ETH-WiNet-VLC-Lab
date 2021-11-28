@@ -1,6 +1,11 @@
+from threading import Event, Thread
 import serial
+from signal import signal, SIGINT
+from sys import platform
 from time import sleep
-from utils import prompt_with_default
+from utils import *
+from gateway import Gateway
+from cli import CLI
 
 print("""
         __    ___ _           _    
@@ -12,8 +17,12 @@ print("""
 by Cedric Keller & Alexander Zank.\n
 """)
 
+# ---------------------
+# SEQUENTIAL SETUP
+# - - - - - - - - - - -
+
 # Prompt port selection.
-DEFAULT_PORT = "COM4"
+DEFAULT_PORT = "/dev/tty.usbmodem212201" if platform.lower() == "darwin" else "COM4"
 port = prompt_with_default("Use this serial port", DEFAULT_PORT)
 
 
@@ -29,22 +38,49 @@ try:
 except:
   print(f"Could not open port {port}. Please try again.")
   exit()
-sleep(2.5)
+sleep(2)
 # Set the address.
-s.write(f"a[{address}]\n")
+s.write(enc(f"a[{address}]\n"))
 sleep(0.1)
-assert str(s.read_until()) == f"a[{address}]"
+assert dec(s.read_until()) == f"a[{address}]\n"
 # Set the retransmission limit.
-s.write("c[1,0,5]\n")
+s.write(enc("c[1,0,5]\n"))
 sleep(0.1)
-assert str(s.read_until()) == f"c[1,0,5]"
+assert dec(s.read_until()) == "c[1,0,5]\n"
 # Set the FEC threshold.
-s.write("c[0,1,30]\n")
+s.write(enc("c[0,1,30]\n"))
 sleep(0.1)
-assert str(s.read_until()) == f"c[0,1,30]"
+assert dec(s.read_until()) == "c[0,1,30]\n"
 
 print("Done.")
 
 # Prompt recipient selection.
 DEFAULT_RECIPIENT_ADDRESS = "AB"
 recipient_address = prompt_with_default("Communicate with this hex-encoded address' owner", DEFAULT_RECIPIENT_ADDRESS)
+
+
+# ---------------------
+# PARALLEL SERVICES
+# - - - - - - - - - - -
+
+# Exit on keyboard interrupts.
+quit_event = Event()
+quit_event.clear()
+def quit(sig, frame):
+  quit_event.set()
+  print("\nQuitting execution...")
+  exit()
+signal(SIGINT, quit)
+
+# Instantiate a gateway thread that sends and receives messages.
+gateway = Gateway(quit_event, s)
+gateway_thread = Thread(target=gateway.event_loop)
+gateway_thread.start()
+
+# Instantiate a CLI thread that handles user I/O.
+cli = CLI(quit_event, gateway)
+cli_thread = Thread(target=cli.event_loop)
+cli_thread.start()
+
+gateway_thread.join()
+cli_thread.join()
