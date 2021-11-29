@@ -57,6 +57,8 @@ print("Done.")
 DEFAULT_RECIPIENT_ADDRESS = "AB"
 recipient_address = prompt_with_default("Communicate with this hex-encoded address' owner", DEFAULT_RECIPIENT_ADDRESS)
 
+print("Listening... Press ⮐  to open the message prompt.\n")
+
 
 # ---------------------
 # PARALLEL SERVICES

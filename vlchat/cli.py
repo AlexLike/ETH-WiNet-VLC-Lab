@@ -24,5 +24,10 @@ class CLI():
       if self.isAcceptingUserInput:
         input()
         message = input("> ")
-        self.g.send_message(message)
-        self.isAcceptingUserInput = False
+        if len(message) <= 180:
+          self.g.send_message(message)
+          self.isAcceptingUserInput = False
+        else:
+          print("Maximum length exceeded. Please send multiple messages.")
+
+        
