@@ -22,7 +22,7 @@ by Cedric Keller & Alexander Zank.\n
 # - - - - - - - - - - -
 
 # Prompt port selection.
-DEFAULT_PORT = "/dev/tty.usbmodem212201" if platform.lower() == "darwin" else "COM4"
+DEFAULT_PORT = "/dev/tty.usbmodem21401" if platform.lower() == "darwin" else "COM4"
 port = prompt_with_default("Use this serial port", DEFAULT_PORT)
 
 
@@ -66,21 +66,19 @@ recipient_address = prompt_with_default("Communicate with this hex-encoded addre
 # Exit on keyboard interrupts.
 quit_event = Event()
 quit_event.clear()
-def quit(sig, frame):
+def quit(*_):
   quit_event.set()
   print("\nQuitting execution...")
   exit()
 signal(SIGINT, quit)
 
 # Instantiate a gateway thread that sends and receives messages.
-gateway = Gateway(quit_event, s)
+gateway = Gateway(quit_event, s, recipient_address)
 gateway_thread = Thread(target=gateway.event_loop)
 gateway_thread.start()
 
-# Instantiate a CLI thread that handles user I/O.
+# Run the CLI that handles user I/O on the main thread.
 cli = CLI(quit_event, gateway)
-cli_thread = Thread(target=cli.event_loop)
-cli_thread.start()
+cli.event_loop()
 
 gateway_thread.join()
-cli_thread.join()
