@@ -34,19 +34,23 @@ class Gateway():
       return
     raw_output = enc(f"m[{message}\0,{recipient}]\n")
     self.s.write(raw_output)
-    response = dec(self.s.read_until())
-    print(f"After sending: {response}")
-    if "0" in response:
-      print("Failed to transfer message.")
+    response = self.receive()
+    assert "1" in response
+    while self.receive() != "m[D]\n":
+      pass
+    print("Received!")
+
+  
+  def receive(self):
+    input = dec(self.s.read_until()).strip()
+    if input.startswith("m[R,D,"):
+      self.receive_queue.put((input[6:-1], self.recipient))
+    return input if input else None
 
   def event_loop(self):
     try:
       while not self.quit_event.is_set():
-        # Try to read input.
-        raw_input = dec(self.s.read_until())
-        if raw_input.strip() != "":
-          self.receive_queue.put((f"Received raw message: {raw_input}", "sender"), timeout=1)
-        # TODO: Send output.
+        self.receive()
         self.send_from_queue()
     except SerialException:
       self.quit_event.set()
