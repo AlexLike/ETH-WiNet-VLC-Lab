@@ -1,7 +1,6 @@
 from threading import Event, Thread
 import serial
 from signal import signal, SIGINT
-from sys import platform
 from time import sleep
 from utils import *
 from gateway import Gateway
@@ -22,7 +21,7 @@ by Cedric Keller & Alexander Zank.\n
 # - - - - - - - - - - -
 
 # Prompt port selection.
-DEFAULT_PORT = "/dev/tty.usbmodem21401" if platform.lower() == "darwin" else "COM4"
+DEFAULT_PORT = default_port()
 port = prompt_with_default("Use this serial port", DEFAULT_PORT)
 
 
