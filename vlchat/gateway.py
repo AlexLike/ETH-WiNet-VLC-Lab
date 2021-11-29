@@ -14,7 +14,7 @@ class Gateway():
     self.receive_queue = Queue(maxsize=10)
 
   # Enqueues the given message for the given recipient for sending. Throws a `Queue.Full` exception, if the queue is full.
-  def send_message(self, utf8_string):
+  def enqueue_message_for_sending(self, utf8_string):
     self.send_queue.put((utf8_string, self.recipient), timeout=0.1)
 
   # Dequeues the oldest message from the receive queue. If no messages have arrived, `None` is returned.
@@ -26,13 +26,13 @@ class Gateway():
     except queue.Empty:
       return None
   
-  def send_message(self):
+  def send_from_queue(self):
     try:
       (message, recipient) = self.send_queue.get(timeout=0.1)
       self.send_queue.task_done()
     except queue.Empty:
       return
-    raw_output = enc(f"m[{message}\0,{recipient}]")
+    raw_output = enc(f"m[{message}\0,{recipient}]\n")
     self.s.write(raw_output)
     response = dec(self.s.read_until())
     print(f"After sending: {response}")
@@ -47,7 +47,7 @@ class Gateway():
         if raw_input.strip() != "":
           self.receive_queue.put((f"Received raw message: {raw_input}", "sender"), timeout=1)
         # TODO: Send output.
-        self.send_message()
+        self.send_from_queue()
     except SerialException:
       self.quit_event.set()
   
