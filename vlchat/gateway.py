@@ -36,16 +36,14 @@ class Gateway():
     self.s.write(raw_output)
     response = self.receive()
     assert "1" in response
-    while self.receive() != "m[D]\n":
-      pass
-    print("Received!")
 
   
   def receive(self):
     input = dec(self.s.read_until()).strip()
+    print(input)
     if input.startswith("m[R,D,"):
-      self.receive_queue.put((input[6:-1], self.recipient))
-    return input if input else None
+      self.receive_queue.put((input[6:-1].strip(), self.recipient))
+    return input.strip() if input else None
 
   def event_loop(self):
     try:
