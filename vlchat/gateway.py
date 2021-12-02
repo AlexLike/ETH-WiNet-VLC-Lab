@@ -40,7 +40,6 @@ class Gateway():
   
   def receive(self):
     input = dec(self.s.read_until()).strip()
-    print(input)
     if input.startswith("m[R,D,"):
       self.receive_queue.put((input[6:-1].strip(), self.recipient))
     return input.strip() if input else None
