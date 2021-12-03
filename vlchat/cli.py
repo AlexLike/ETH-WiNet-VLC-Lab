@@ -1,9 +1,10 @@
 from threading import Event
-from time import sleep
 from gateway import Gateway
-from keyboard import add_hotkey, is_pressed
+from keyboard import add_hotkey
 
 class CLI():
+  """An object that handles user I/O and communicates with a provided Gateway."""
+
   def __init__(self, quit_event: Event, g: Gateway):
     self.quit_event = quit_event
     self.g = g
@@ -20,14 +21,14 @@ class CLI():
       if received_message:
         (message, sender) = received_message
         print(f"{sender}: {message}")
-      # Stop receiving, listen for user input, and send a message.
+      # Listen for user input, and send a message.
       if self.isAcceptingUserInput:
         input()
         message = input("> ")
-        if len(message) <= 180:
+        if len(message) <= 200:
           self.g.enqueue_message_for_sending(message)
-          self.isAcceptingUserInput = False
         else:
           print("Maximum length exceeded. Please send multiple messages.")
+        self.isAcceptingUserInput = False
 
         

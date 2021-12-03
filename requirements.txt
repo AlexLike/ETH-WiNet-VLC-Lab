@@ -1,2 +1,4 @@
 pyserial
 keyboard
+numpy
+scipy
