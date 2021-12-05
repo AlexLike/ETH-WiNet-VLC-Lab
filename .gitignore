@@ -144,4 +144,8 @@ cython_debug/
 
 .DS_Store
 
+*.pdf
+
+*.html
+
 # End of https://www.toptal.com/developers/gitignore/api/python
